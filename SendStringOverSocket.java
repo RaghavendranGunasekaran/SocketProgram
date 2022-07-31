@@ -1,72 +1,128 @@
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.Socket;
 
-public class Client {
-    public static void main(String[] args) throws IOException {
-        // need host and port, we want to connect to the ServerSocket at port 7777
-        Socket socket = new Socket("localhost", 7777);
-        System.out.println("Connected!");
-
-        // get the output stream from the socket.
-        OutputStream outputStream = socket.getOutputStream();
-        // create a data output stream from the output stream so we can send data through it
-        DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
-
-        System.out.println("Sending string to the ServerSocket");
-
-        // write the message we want to send
-        dataOutputStream.writeUTF("Hello from the other side!");
-        dataOutputStream.flush(); // send the message
-        dataOutputStream.close(); // close the output stream when we're done.
-
-        System.out.println("Closing socket and terminating program.");
-        socket.close();
+                                        //send string over socket example
+import java.io.*;
+import java.net.*;
+  
+class Client {
+  
+    public static void main(String args[])
+        throws Exception
+    {
+  
+        // Create client socket
+        Socket s = new Socket("localhost", 888);
+  
+        // to send data to the server
+        DataOutputStream dos
+            = new DataOutputStream(
+                s.getOutputStream());
+  
+        // to read data coming from the server
+        BufferedReader br
+            = new BufferedReader(
+                new InputStreamReader(
+                    s.getInputStream()));
+  
+        // to read data from the keyboard
+        BufferedReader kb
+            = new BufferedReader(
+                new InputStreamReader(System.in));
+        String str, str1;
+  
+        // repeat as long as exit
+        // is not typed at client
+        while (!(str = kb.readLine()).equals("exit")) {
+  
+            // send to the server
+            dos.writeBytes(str + "\n");
+  
+            // receive from the server
+            str1 = br.readLine();
+  
+            System.out.println(str1);
+        }
+  
+        // close connection.
+        dos.close();
+        br.close();
+        kb.close();
+        s.close();
+    }
+}
+import java.io.*;
+import java.net.*;
+  
+class Server {
+  
+    public static void main(String args[])
+        throws Exception
+    {
+  
+        // Create server Socket
+        ServerSocket ss = new ServerSocket(888);
+  
+        // connect it to client socket
+        Socket s = ss.accept();
+        System.out.println("Connection established");
+  
+        // to send data to the client
+        PrintStream ps
+            = new PrintStream(s.getOutputStream());
+  
+        // to read data coming from the client
+        BufferedReader br
+            = new BufferedReader(
+                new InputStreamReader(
+                    s.getInputStream()));
+  
+        // to read data from the keyboard
+        BufferedReader kb
+            = new BufferedReader(
+                new InputStreamReader(System.in));
+  
+        // server executes continuously
+        while (true) {
+  
+            String str, str1;
+  
+            // repeat as long as the client
+            // does not send a null string
+  
+            // read from client
+            while ((str = br.readLine()) != null) {
+                System.out.println(str);
+                str1 = kb.readLine();
+  
+                // send to client
+                ps.println(str1);
+            }
+  
+            // close connection
+            ps.close();
+            br.close();
+            kb.close();
+            ss.close();
+            s.close();
+  
+            // terminate application
+            System.exit(0);
+  
+        } // end of while
     }
 }
 
 
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
-
-public class Server {
-    public static void main(String[] args) throws IOException {
-        // don't need to specify a hostname, it will be the current machine
-        ServerSocket ss = new ServerSocket(7777);
-        System.out.println("ServerSocket awaiting connections...");
-        Socket socket = ss.accept(); // blocking call, this will wait until a connection is attempted on this port.
-        System.out.println("Connection from " + socket + "!");
-
-        // get the input stream from the connected socket
-        InputStream inputStream = socket.getInputStream();
-        // create a DataInputStream so we can read data from it.
-        DataInputStream dataInputStream = new DataInputStream(inputStream);
-
-        // read the message from the socket
-        String message = dataInputStream.readUTF();
-        System.out.println("The message sent from the socket was: " + message);
-
-        System.out.println("Closing sockets.");
-        ss.close();
-        socket.close();
-    }
-}
+// To execute the Server and Client classes, run the Server.java and Client.java in two separate Command Prompt windows.
 
 //Server Output
 /*
-ServerSocket awaiting connections...
-Connection from Socket[addr=/127.0.0.1,port=62085,localport=7777]!
-The message sent from the socket was: Hello from the other side!
-Closing sockets.
+connection established
+Hi This is Client 1 talking
+Hi Client 1. This is Server
 */
 
 // Client Output
 /*
-Connected!
-Sending string to the ServerSocket
-Closing socket and terminating program.
+Hi This is Client 1 talking
+Hi Client 1. This is Server
 */
